@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中国神話・妖怪・神々古図鑑</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Asian/Antique style Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Traditional Aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=Zen+Old+Mincho:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parchment: {
+                            50: '#fdfbf7',
+                            100: '#f7f2e7',
+                            200: '#ede3cd',
+                            300: '#dfceaa',
+                            400: '#ceb480',
+                            800: '#4a3d28',
+                            900: '#2d2417',
+                        },
+                        cinnabar: {
+                            600: '#b83227',
+                            700: '#9b241a',
+                            800: '#7e1b12',
+                        },
+                        ink: {
+                            800: '#2b2927',
+                            900: '#1a1918',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Shippori Mincho"', '"Zen Old Mincho"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Shippori Mincho', 'Zen Old Mincho', serif;
+            background-color: #f7f2e7;
+            color: #2b2927;
+            overflow: hidden;
+            touch-action: none; /* Prevents default mobile scroll while dragging canvas */
+        }
+
+        /* Antique Parchment Background Pattern */
+        .bg-parchment-texture {
+            background-color: #f7f2e7;
+            background-image: 
+                radial-gradient(ellipse at center, rgba(255,255,255,0.4) 0%, rgba(223,206,170,0.4) 100%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ede3cd;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ceb480;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b83227;
+        }
+
+        /* Seal Stamp Style */
+        .stamp-seal {
+            border: 2px solid #b83227;
+            color: #b83227;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            box-shadow: inset 0 0 2px rgba(184, 50, 39, 0.3);
+        }
+
+        /* Transition Effects */
+        .panel-slide {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphic Antique Card */
+        .antique-card {
+            background: rgba(253, 251, 247, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(206, 180, 128, 0.5);
+            box-shadow: 0 4px 20px -2px rgba(74, 61, 40, 0.1);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen relative select-none bg-parchment-texture flex flex-col">
+
+    <!-- Top Header / App Title -->
+    <header class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-parchment-100/90 backdrop-blur-md border-b border-parchment-300 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-cinnabar-600 text-parchment-50 flex items-center justify-center font-bold text-lg shadow">
+                華
+            </div>
+            <div>
+                <h1 class="text-lg md:text-xl font-extrabold text-ink-900 tracking-wider">中国神話・妖怪・神々古図鑑</h1>
+                <p class="text-xs text-parchment-800 hidden sm:block">華夏全土の怪異・神仙インタラクティブ伝承地図</p>
+            </div>
+        </div>
+
+        <!-- Controls / Actions -->
+        <div class="flex items-center space-x-2">
+            <button id="openSearchBtn" class="px-3 py-1.5 bg-parchment-200 hover:bg-parchment-300 text-ink-900 rounded-md text-sm border border-parchment-400 flex items-center space-x-1.5 transition">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                <span>検索・目録</span>
+            </button>
+            <button id="openRefBtn" class="px-3 py-1.5 bg-parchment-200 hover:bg-parchment-300 text-ink-900 rounded-md text-sm border border-parchment-400 flex items-center space-x-1.5 transition">
+                <i class="fa-solid fa-book-bookmark text-xs"></i>
+                <span class="hidden sm:inline">参考文献</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Map Container (Main Canvas Area) -->
+    <main class="relative flex-1 w-full h-full overflow-hidden cursor-grab active:cursor-grabbing" id="mapWrapper">
+        <canvas id="mapCanvas" class="w-full h-full block"></canvas>
+
+        <!-- Floating Map Instruction Badge -->
+        <div class="absolute bottom-4 left-4 z-10 pointer-events-none bg-parchment-100/90 border border-parchment-300 rounded-lg p-2.5 shadow-md text-xs text-parchment-800 flex items-center space-x-2">
+            <i class="fa-solid fa-hand-pointer text-cinnabar-600 animate-pulse"></i>
+            <span>ドラッグで移動 / ホイール・ピンチで拡大縮小 / 地域タップで詳細</span>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div class="absolute bottom-4 right-4 z-10 flex flex-col space-y-1 bg-parchment-100/90 border border-parchment-300 rounded-lg p-1 shadow-md">
+            <button id="zoomInBtn" class="w-8 h-8 hover:bg-parchment-200 rounded text-ink-800 flex items-center justify-center transition" title="拡大">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <div class="h-px bg-parchment-300 w-full"></div>
+            <button id="resetMapBtn" class="w-8 h-8 hover:bg-parchment-200 rounded text-ink-800 flex items-center justify-center text-xs font-bold transition" title="全体表示">
+                全図
+            </button>
+            <div class="h-px bg-parchment-300 w-full"></div>
+            <button id="zoomOutBtn" class="w-8 h-8 hover:bg-parchment-200 rounded text-ink-800 flex items-center justify-center transition" title="縮小">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Region Detail Drawer Panel -->
+    <aside id="regionDrawer" class="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-parchment-50/95 backdrop-blur-lg border-l border-parchment-300 z-30 shadow-2xl panel-slide transform translate-x-full flex flex-col">
+        <!-- Drawer Header -->
+        <div class="p-4 border-b border-parchment-300 flex items-center justify-between bg-parchment-100/80">
+            <div>
+                <span class="stamp-seal text-xs mb-1">地域伝承</span>
+                <h2 id="drawerRegionTitle" class="text-2xl font-black text-ink-900 tracking-widest">華北地方</h2>
+            </div>
+            <button id="closeDrawerBtn" class="w-8 h-8 rounded-full hover:bg-parchment-200 text-ink-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Filter Tabs (All / Yokai / Deity) -->
+        <div class="flex border-b border-parchment-300 bg-parchment-200/50 p-1 space-x-1">
+            <button data-type="all" class="tab-btn flex-1 py-1.5 text-xs font-bold rounded-md bg-parchment-50 text-cinnabar-700 shadow-sm border border-parchment-300 transition">
+                すべて (<span id="countAll">0</span>)
+            </button>
+            <button data-type="yokai" class="tab-btn flex-1 py-1.5 text-xs font-bold rounded-md text-parchment-800 hover:bg-parchment-100 transition">
+                妖怪 (<span id="countYokai">0</span>)
+            </button>
+            <button data-type="deity" class="tab-btn flex-1 py-1.5 text-xs font-bold rounded-md text-parchment-800 hover:bg-parchment-100 transition">
+                神様 (<span id="countDeity">0</span>)
+            </button>
+        </div>
+
+        <!-- Drawer Content Body (Scrollable List) -->
+        <div id="drawerContent" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Dynamically populated cards -->
+        </div>
+    </aside>
+
+    <!-- Global Search & Catalog Modal -->
+    <div id="searchModal" class="fixed inset-0 z-40 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-parchment-300 bg-parchment-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-scroll text-cinnabar-600 text-lg"></i>
+                    <h2 class="text-lg font-bold text-ink-900">全土総目録・検索</h2>
+                </div>
+                <button id="closeSearchBtn" class="w-8 h-8 rounded-full hover:bg-parchment-200 text-ink-800 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Search Inputs & Filters -->
+            <div class="p-4 border-b border-parchment-200 bg-parchment-50 space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-parchment-400"></i>
+                    <input type="text" id="searchInput" placeholder="名称、場所、由来キーワードで検索..." 
+                           class="w-full pl-9 pr-4 py-2 bg-parchment-100 border border-parchment-300 rounded-lg text-sm text-ink-900 focus:outline-none focus:border-cinnabar-600 transition">
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <!-- Category Filter -->
+                    <select id="categoryFilter" class="bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-800 focus:outline-none">
+                        <option value="all">全区分（妖怪・神様）</option>
+                        <option value="妖怪">妖怪のみ</option>
+                        <option value="神様">神様のみ</option>
+                    </select>
+
+                    <!-- Region Filter -->
+                    <select id="regionFilter" class="bg-parchment-100 border border-parchment-300 rounded px-2 py-1 text-ink-800 focus:outline-none">
+                        <option value="all">全地域（7地方）</option>
+                        <option value="華北">華北</option>
+                        <option value="東北">東北</option>
+                        <option value="華東">華東</option>
+                        <option value="華中">華中</option>
+                        <option value="華南">華南</option>
+                        <option value="西北">西北</option>
+                        <option value="西南">西南</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Search Results Scroll Area -->
+            <div id="searchResults" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Dynamically populated results -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Reference Modal -->
+    <div id="refModal" class="fixed inset-0 z-40 bg-ink-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-parchment-300 bg-parchment-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-book-atlas text-cinnabar-600"></i>
+                    <h2 class="text-lg font-bold text-ink-900">参考文献・典拠資料</h2>
+                </div>
+                <button id="closeRefBtn" class="w-8 h-8 rounded-full hover:bg-parchment-200 text-ink-800 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-5 space-y-5 text-sm text-ink-800">
+                <div>
+                    <h3 class="font-bold text-cinnabar-700 mb-2 border-b border-parchment-300 pb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-book text-xs"></i>
+                        <span>書籍資料</span>
+                    </h3>
+                    <ul class="space-y-3 pl-1">
+                        <li class="bg-parchment-100 p-3 rounded-lg border border-parchment-200">
+                            <div class="font-bold text-ink-900">『中国神話伝説』</div>
+                            <div class="text-xs text-parchment-800 mt-0.5">著者: 袁珂 / 出版日: 1993年12月1日</div>
+                            <div class="text-xs text-parchment-400 mt-1">参照日: 2026年9月18日</div>
+                        </li>
+                        <li class="bg-parchment-100 p-3 rounded-lg border border-parchment-200">
+                            <div class="font-bold text-ink-900">『聊斎志異』</div>
+                            <div class="text-xs text-parchment-800 mt-0.5">著者: 蒲松齢 / 出版日: 1989年5月10日</div>
+                            <div class="text-xs text-parchment-400 mt-1">参照日: 2026年9月18日</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-cinnabar-700 mb-2 border-b border-parchment-300 pb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-globe text-xs"></i>
+                        <span>Webサイト・公式データベース</span>
+                    </h3>
+                    <ul class="space-y-3 pl-1">
+                        <li class="bg-parchment-100 p-3 rounded-lg border border-parchment-200">
+                            <div class="font-bold text-ink-900">「道教神仙体系概要」</div>
+                            <div class="text-xs text-parchment-800 mt-0.5">サイト名: 中国道教協会公式サイト (2021年8月15日)</div>
+                            <a href="http://www.chinadaoism.org/" target="_blank" rel="noopener" class="text-xs text-cinnabar-600 hover:underline break-all block mt-1">http://www.chinadaoism.org/</a>
+                            <div class="text-xs text-parchment-400 mt-0.5">参照日: 2026年9月18日</div>
+                        </li>
+                        <li class="bg-parchment-100 p-3 rounded-lg border border-parchment-200">
+                            <div class="font-bold text-ink-900">「中国民間神話伝説データベース」</div>
+                            <div class="text-xs text-parchment-800 mt-0.5">サイト名: 中国国家図書館 (2022年3月10日)</div>
+                            <a href="http://www.nlc.cn/" target="_blank" rel="noopener" class="text-xs text-cinnabar-600 hover:underline break-all block mt-1">http://www.nlc.cn/</a>
+                            <div class="text-xs text-parchment-400 mt-0.5">参照日: 2026年9月18日</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Store containing all 7 Regions, Yokai, and Deities
+        const MYTH_DATA = [
+            // 1. 華北
+            {
+                region: "華北",
+                center: { x: 0.58, y: 0.38 }, // Map relative coordinates (0.0 to 1.0)
+                bounds: [
+                    {x: 0.50, y: 0.28}, {x: 0.66, y: 0.28},
+                    {x: 0.68, y: 0.44}, {x: 0.50, y: 0.44}
+                ],
+                color: "rgba(184, 50, 39, 0.15)",
+                borderColor: "#b83227",
+                items: [
+                    // 妖怪
+                    { category: "妖怪", name: "狐狸精（こりせい）", location: "河北省・山西省など華北全域", content: "人に化けて人間を化かしたり、魅了して精気を吸い取ったりする狐の怪異。", origin: "古来の野生動物への畏怖や、説明のつかない不祥事を怪異に由来させたことから成立した。" },
+                    { category: "妖怪", name: "旱魃（かんばつ / ひでり）", location: "山西省・河南省境界付近", content: "日照りを引き起こす妖怪。通り過ぎた土地の水分を奪い、雨を降らせなくする。", origin: "華北の厳しい乾燥気候と、壊滅的な干ばつ被害を神話・妖怪的説明として解釈したことで生まれた。" },
+                    { category: "妖怪", name: "魃鬼（ばつき）", location: "北京市・天津市周辺", content: "人の遺体が腐敗せずに変異し、歩き回って禍をもたらすとされる悪鬼。", origin: "土葬文化において、土中の遺体の変質現象に対する恐怖心から生じた。" },
+                    { category: "妖怪", name: "夜叉（やしゃ）", location: "山西省など山岳部", content: "素早く動き、恐ろしい顔つきで人間を襲う野生の怪異。", origin: "山林地帯に生息する猛獣や、山賊などの脅威が民間伝承の中で怪異化した。" },
+                    { category: "妖怪", name: "僵尸（キョンシー）", location: "華北各地の農村部", content: "死後、魂が抜けきらず硬直したまま動き出し、生存者を襲う死体妖怪。", origin: "遺体搬送（出稼ぎ先での客死者を故郷へ運ぶ風習）や、死者への恐怖から噂された。" },
+                    // 神様
+                    { category: "神様", name: "関聖帝君（関羽）", location: "山西省運城市", content: "忠義と武勇を司り、後世では財神（商業の神）としても広く祀られる武神。", origin: "三国時代の武将・関羽の死後、民衆の顕彰と国家の崇敬が重なり神格化された。" },
+                    { category: "神様", name: "保生大帝", location: "北京市などの道観（華北分霊）", content: "病気平癒や医術を司る名医の神。", origin: "実在した名医の功績を称え、死後に医療の神として信仰された。" },
+                    { category: "神様", name: "碧霞元君（へきかねんくん）", location: "山東省・河北省境界（泰山信仰の系譜）", content: "子供の成長、安産、家庭の平安を司る女神。", origin: "泰山信仰と連携し、庶民の日常的な祈願に応える母性神として形成された。" },
+                    { category: "神様", name: "玉皇大帝（ぎょくこうたいてい）", location: "北京市（東岳廟など）", content: "道教における最高神であり、天界と宇宙全体を統括する皇帝神。", origin: "古代の天崇拝と道教神話が合一し、神々の頂点として体系化された。" },
+                    { category: "神様", name: "城隍神（じょうこうしん）", location: "北京市・天津市", content: "都市の防衛、治安維持、死者の魂の裁判を司る土地の守護神。", origin: "城壁と壕（ほり）を守る古代の自然崇拝が、都市を守護する神へと変化した。" }
+                ]
+            },
+            // 2. 東北
+            {
+                region: "東北",
+                center: { x: 0.78, y: 0.22 },
+                bounds: [
+                    {x: 0.67, y: 0.08}, {x: 0.92, y: 0.08},
+                    {x: 0.90, y: 0.32}, {x: 0.67, y: 0.32}
+                ],
+                color: "rgba(180, 140, 60, 0.15)",
+                borderColor: "#b48c3c",
+                items: [
+                    { category: "妖怪", name: "胡仙（こせん / 狐）", location: "遼寧省・吉林省・黒竜江省全域", content: "五大仙（保家仙）の一つ。気まぐれで人間を化かすが、祀れば家を富ませる。", origin: "東北地方のシャーマニズム（サマン教）と狐狸崇拝が結合して生じた。" },
+                    { category: "妖怪", name: "黄仙（こうせん / イタチ）", location: "吉林省の農村部", content: "精神を取り憑かせて錯乱させたり、幻覚を見せたりするイタチの怪異。", origin: "イタチのすばやい動きや、人家近くに出没する生態への警戒から生まれた。" },
+                    { category: "妖怪", name: "白仙（はくせん / ハリネズミ）", location: "黒竜江省の山林", content: "病気を治す力を持つとされる一方、無礼な人間には祟りを及ぼす怪異。", origin: "民間薬草学と、刺を持つ独特な姿のハリネズミへの畏怖が結びついた。" },
+                    { category: "妖怪", name: "灰仙（かいせん / ネズミ）", location: "遼寧省の穀倉地帯", content: "予知能力を持ち、財物を盗み出したり運んできたりするネズミの妖怪。", origin: "穀物を食い荒らす害獣としての側面と、貯蓄する生態への注目から生じた。" },
+                    { category: "妖怪", name: "柳仙（りゅうせん / ヘビ）", location: "東北地方の山林・水辺", content: "根深い執念を持ち、危害を加えた人間に強い祟りをもたらす大蛇の怪異。", origin: "ヘビの生殖力や毒に対する本能的な恐怖が神話・妖怪化された。" },
+                    { category: "神様", name: "山神爺（さんしんや / 長白山山神）", location: "吉林省（長白山周辺）", content: "山林資源（人参採掘や狩猟）を守護し、山の安全を司る神。", origin: "過酷な山林で採掘を行う人々が、事故防止と収穫を祈願して祀り始めた。" },
+                    { category: "神様", name: "保家仙（ほかせん）", location: "東北三省の一般家庭", content: "家庭の平安、健康、財運を守り、災害から家を保護する霊神。", origin: "アニミズム的な動物精霊崇拝が、家庭の守護霊として体系化された。" },
+                    { category: "神様", name: "薩満祖師（サマンそし）", location: "黒竜江省など満洲族の居住地域", content: "天と地、人間と霊界を仲介するシャーマニズムの最高祖師神。", origin: "北方民族の伝統的な精霊信仰・トータリズムから確立された。" },
+                    { category: "神様", name: "黒竜大王（こくりゅうだいおう）", location: "黒竜江省（黒竜江流域）", content: "川の水流を制御し、水害を防いで航行の安全を守る竜神。", origin: "黒竜江の激しい水流を鎮め、地域の安全を祈る水神信仰から生まれた。" },
+                    { category: "神様", name: "娘娘神（にゃんにゃんしん）", location: "遼寧省（千山など）", content: "子授け、安産、無病息災を授ける子宝の女神。", origin: "厳しい風土の中で一族の存続と子供の無事成長を願う信仰から生じた。" }
+                ]
+            },
+            // 3. 華東
+            {
+                region: "華東",
+                center: { x: 0.72, y: 0.58 },
+                bounds: [
+                    {x: 0.65, y: 0.45}, {x: 0.82, y: 0.45},
+                    {x: 0.80, y: 0.72}, {x: 0.62, y: 0.72}
+                ],
+                color: "rgba(60, 120, 140, 0.15)",
+                borderColor: "#3c788c",
+                items: [
+                    { category: "妖怪", name: "水鬼（すいき）", location: "江蘇省・浙江省の水郷地帯", content: "水中で人を引き込み、溺死させて自分の身代わりを探す水の怪異。", origin: "河川や運河での水難事故の恐怖を説話化し、水辺の危険を警戒させるため生じた。" },
+                    { category: "妖怪", name: "無頭鬼（むとうき）", location: "安徽省などの古戦場", content: "首がない状態で夜道や荒野をさまよい、旅人を脅かす妖怪。", origin: "戦争や処刑で命を落とした死者への同情と怨念の思想から誕生した。" },
+                    { category: "妖怪", name: "画皮（がひ）", location: "山東省（『聊斎志異』の舞台）", content: "人間の皮膚に美しい顔を描いて被り、男を惑わして心臓を喰らう悪鬼。", origin: "外見の美しさに惑わされる人間への戒めとして、文人が民話を集約・創作した。" },
+                    { category: "妖怪", name: "吊死鬼（ちょうしき）", location: "上海市・浙江省の古い邸宅", content: "首を吊って死んだ者の霊が化けた妖怪。長い舌を出し、自傷を誘う。", origin: "自殺者の無念や、不吉な死に対する忌避感から生まれた。" },
+                    { category: "妖怪", name: "縊鬼（いつき）", location: "江西省の山間部", content: "人に取り憑いて首吊りを誘導し、自身の代わりにさせようとする霊的怪異。", origin: "突発的な精神の不調や不幸な死を外的因果として解釈した。" },
+                    { category: "神様", name: "マートゥ（媽祖 / まそ）", location: "福建省莆田市（湄州島）", content: "航海安全、大漁、海上災害からの保護を司る海の女神。", origin: "実在した女性「林黙娘」の難破船救助伝説が広まり、国家的な海神となった。" },
+                    { category: "神様", name: "福徳正神（大伯公 / 土地公）", location: "福建省・江西省", content: "身近な土地の農業、財運、日常の平安を守護する親しみやすい神。", origin: "古代の社日（土地神）崇拝が、地域社会の庶民信仰として定着した。" },
+                    { category: "神様", name: "臨水夫人（陳靖姑）", location: "福建省福州市", content: "難産防ぎ、女性や幼児の健康と安全を守護する女神。", origin: "実在の女性の伝承が、安産や子供の護符を祈る民衆によって神格化された。" },
+                    { category: "神様", name: "文昌帝君（ぶんしょうていくん）", location: "江蘇省・浙江省など学問の盛んな地域", content: "学問、試験の合格、文芸の隆盛を司る神。", origin: "科挙制度の発展とともに、受験生や知識人層から熱狂的に支持されて成立した。" },
+                    { category: "神様", name: "水仙尊王（すいせんそんおう）", location: "浙江省・福建省の港町", content: "船乗りや貿易商人の安全を守護する海上の神々（屈原などが含まれる）。", origin: "海上貿易の隆盛に伴い、水に関わる歴史上の偉人たちが水神として束ねられた。" }
+                ]
+            },
+            // 4. 華中
+            {
+                region: "華中",
+                center: { x: 0.55, y: 0.58 },
+                bounds: [
+                    {x: 0.46, y: 0.46}, {x: 0.64, y: 0.46},
+                    {x: 0.64, y: 0.68}, {x: 0.46, y: 0.68}
+                ],
+                color: "rgba(100, 140, 70, 0.15)",
+                borderColor: "#648c46",
+                items: [
+                    { category: "妖怪", name: "姑獲鳥（こかくちょう）", location: "河南省・湖北省の長江流域", content: "夜間に飛び回り、他人の子供を奪って自分の子にするとされる鳥の妖怪。", origin: "難産で死亡した妊婦の無念が鳥に化けたという伝承から生まれた。" },
+                    { category: "妖怪", name: "山魈（さんしょう）", location: "湖南省の山岳地帯", content: "一本足で素早く動き、山中で大声を上げて木こりや旅人を脅かす怪異。", origin: "山林の奇妙な回響音や、大型類人猿・野生動物への畏怖が象徴化された。" },
+                    { category: "妖怪", name: "鬼車（きしゃ / 九頭鳥）", location: "湖北省（旧楚の地域）", content: "9つの頭を持つ不吉な鳥。民家の屋根に止まり、血液を落として災いをもたらす。", origin: "古代楚国の鳥崇拝が後世に変化し、不吉な予兆として伝承された。" },
+                    { category: "妖怪", name: "落頭民（らくとうみん / 飛頭蛮）", location: "湖南省・河南省の境", content: "夜になると首が体から離れ、空を飛んで虫などを食べた後、朝に元に戻る妖怪。", origin: "異民族の風習に対する恐怖や誤解が、身体変異の説話へ変化した。" },
+                    { category: "妖怪", name: "水猴子（すいこうし / 水猿）", location: "河南省の河川部", content: "猿に似た姿で水中に潜み、泳ぐ人を引き込んで窒息させる妖怪。", origin: "川底の藻や水流の不快な巻き込み現象を小動物の妖怪になぞらえた。" },
+                    { category: "神様", name: "炎帝神農（えんていしんのう）", location: "湖北省随州市", content: "農業の手法と薬草の効能を人類に教えた医術と農耕の祖神。", origin: "古代の採集・農耕社会への移行期における指導者が神格化された。" },
+                    { category: "神様", name: "屈原神（くつげんしん）", location: "湖南省岳陽市（汨羅江）", content: "愛国心と正義の象徴であり、水難除けや端午の節句の守護神。", origin: "楚の政治家・詩人であった屈原の入水自殺を悼み、民衆が神として祀った。" },
+                    { category: "神様", name: "伏羲・女媧（ふくぎ・じょか）", location: "河南省周口市", content: "人類を創造し、八卦や結婚の制度を定めた文化創世の神々。", origin: "古代神話における人類起源説話と、文明開化の象徴として確立された。" },
+                    { category: "神様", name: "黄帝（こうてい）", location: "河南省新鄭市", content: "中華民族の共通の祖であり、医療・文字・服飾などを創始した文明神。", origin: "多部族の統合の歴史の中で、統一された祖先神としてまつり上げられた。" },
+                    { category: "神様", name: "張三豊（ちょうさんぽう）", location: "湖北省十堰市（武当山）", content: "太極拳の創始者とされ、不老長寿と武術の成功を司る道教の神仙。", origin: "実在の道士の伝説的な強さと長寿が道教世界で神格化された。" }
+                ]
+            },
+            // 5. 華南
+            {
+                region: "華南",
+                center: { x: 0.58, y: 0.78 },
+                bounds: [
+                    {x: 0.48, y: 0.69}, {x: 0.75, y: 0.69},
+                    {x: 0.72, y: 0.90}, {x: 0.46, y: 0.90}
+                ],
+                color: "rgba(180, 90, 140, 0.15)",
+                borderColor: "#b45a8c",
+                items: [
+                    { category: "妖怪", name: "飛頭蛮（ひとうばん）", location: "広東省・広西チワン族自治区", content: "夜間に頭部が体から離れ、耳を翼のように羽ばたかせて空を飛ぶ怪異。", origin: "嶺南（南方）の未開地域に対する都市部の偏見や怪奇説話から生まれた。" },
+                    { category: "妖怪", name: "野狗子（やくし）", location: "広東省の山間部", content: "野犬のような姿をし、戦場や墓場で人の遺体を掘り起こして喰らう妖怪。", origin: "野犬が遺体を荒らす惨状への恐怖と忌避感から具現化した。" },
+                    { category: "妖怪", name: "蜃（しん）", location: "海南省・広東省沿岸部", content: "海中に潜む巨大なハマグリ。吐き出す気によって蜃気楼（幻の都市）を見せる。", origin: "海上で発生する自然現象の蜃気楼を、巨大生物の吐息とみなして説明した。" },
+                    { category: "妖怪", name: "山𤢖（さんこう）", location: "広西の山林地帯", content: "人の言葉を話し、人間を倒して食らうとされる山中の怪異。", origin: "深い密林での遭難や、未知の野生動物に対する恐怖から生じた。" },
+                    { category: "妖怪", name: "瘴気精（しょうきせい）", location: "海南省などの熱帯雨林", content: "山の毒気や湿気から発生し、人に高熱や悪疫をもたらす気体状の妖怪。", origin: "マラリアなどの熱帯病を、環境に潜む悪霊の仕業として解釈した。" },
+                    { category: "神様", name: "洪聖大王（こうせいだいおう）", location: "広東省広州市", content: "気象を予測し、海上の安全と暴風雨からの保護を司る海神。", origin: "唐代の清廉な官吏が死後、気象・天文の知見から海神として祀られた。" },
+                    { category: "神様", name: "洗夫人（せんふじん）", location: "広東省茂名市・海南省", content: "地域の平和、民族調和、生活の平安を守護する聖母神。", origin: "実在した高州の首長女性の政治的功績と平和への貢献が崇められた。" },
+                    { category: "神様", name: "黄大仙（こうたいせん）", location: "広東省および香港周辺", content: "病気治癒、有求必応（祈念成就）、運勢開運を司る道教の神仙。", origin: "仙人となった黄初平の伝説が、近代の都市生活者の苦難を救う神として発展。" },
+                    { category: "神様", name: "三山国王（さんざんこくおう）", location: "広東省潮州市（巾山・明山・独山）", content: "3つの山の神々。地域の防衛、水害防止、郷土の平安を司る。", origin: "潮州の3つの霊峰に対する山岳信仰が、地域の防衛神として合体した。" },
+                    { category: "神様", name: "花ノ神（花朝娘娘）", location: "広西チワン族自治区", content: "植物の開花、農作物の豊作、子供の健康を司る彩りの女神。", origin: "温暖な気候における豊かな植生への感謝と農耕祈願から生じた。" }
+                ]
+            },
+            // 6. 西北
+            {
+                region: "西北",
+                center: { x: 0.35, y: 0.35 },
+                bounds: [
+                    {x: 0.12, y: 0.15}, {x: 0.48, y: 0.15},
+                    {x: 0.48, y: 0.45}, {x: 0.22, y: 0.45}
+                ],
+                color: "rgba(160, 110, 60, 0.15)",
+                borderColor: "#a06e3c",
+                items: [
+                    { category: "妖怪", name: "窮奇（きゅうき）", location: "甘粛省・青海省の山岳地帯", content: "虎の体に翼を持ち、人を喰らう凶悪な怪獣。悪人を助け善人を襲うとされる。", origin: "古代神話（『山海経』）において、道理に背く存在や猛獣への恐怖から生まれた。" },
+                    { category: "妖怪", name: "饕餮（とうてつ）", location: "陝西省などの青銅器文化圏", content: "強大な食欲を持ち、あらゆるものを食べ尽くす凶暴な怪物。", origin: "古代青銅器の意匠として使われ、貪欲さへの戒めや魔除けとして成立。" },
+                    { category: "妖怪", name: "沙鬼（さき）", location: "新疆ウイグル自治区・甘粛省（タクラマカン砂漠）", content: "砂嵐に乗って現れ、旅人を幻覚で誘い込んで砂漠の中で行き倒れさせる。", origin: "過酷な砂漠環境での遭難、流砂、熱風の脅威が妖怪化された。" },
+                    { category: "妖怪", name: "毛人（もうじん）", location: "青海省の高原地帯", content: "全身が毛に覆われた人型の怪異。山中で素早く走り、人を襲う。", origin: "雪男伝承に似た、高山地帯の未確認生物や密猟者への恐怖が背景にある。" },
+                    { category: "妖怪", name: "風伯怪（ふうはくかい）", location: "寧夏回族自治区などの黄土高原", content: "突風を巻き起こして家屋を破壊し、黄土の砂塵で視界を奪う怪異。", origin: "黄土高原特有の強い局地風や砂嵐被害に対する恐れから誕生。" },
+                    { category: "神様", name: "西王母（せいおうぼ）", location: "青海省・新疆ウイグル自治区（昆侖山）", content: "不老不死の霊薬を保持し、すべての女仙を統括する最高位の女神。", origin: "古代の西方の異形神から、道教の洗練された不老長寿の女神へ変化した。" },
+                    { category: "神様", name: "黄帝軒轅氏（陵墓信仰）", location: "陝西省延安市（黄陵県）", content: "中華の共通祖先であり、国家の安泰と民族の繁栄を司る。", origin: "祖先崇拝の中心的拠点として、皇帝や庶民が代々参拝して定着した。" },
+                    { category: "神様", name: "九天玄女（きゅうてんげんじょ）", location: "陝西省", content: "兵法、戦術、災難除けを司る正義の女神。", origin: "黄帝を助けて邪神を破ったとする軍事・兵法の神的存在として生まれた。" },
+                    { category: "神様", name: "太上老君（老子）", location: "陝西省宝鶏市（楼観台）", content: "道教の教主であり、道（タオ）そのものの化身、清静と無為を司る。", origin: "道家の祖・老子の思想が、道教の宗教的発展に伴って最高神格へ昇華された。" },
+                    { category: "神様", name: "五道転輪王", location: "甘粛省（敦煌文書の系譜）", content: "死者の魂が次に生まれ変わる世界（六道）を決定する裁判神。", origin: "仏教の輪廻転生説が、地元の冥界裁判思想と結びついて成立した。" }
+                ]
+            },
+            // 7. 西南
+            {
+                region: "西南",
+                center: { x: 0.32, y: 0.65 },
+                bounds: [
+                    {x: 0.12, y: 0.48}, {x: 0.45, y: 0.48},
+                    {x: 0.45, y: 0.85}, {x: 0.18, y: 0.85}
+                ],
+                color: "rgba(120, 80, 160, 0.15)",
+                borderColor: "#7850a0",
+                items: [
+                    { category: "妖怪", name: "蚩尤（しゆう）", location: "貴州省・雲南省の山岳地帯", content: "銅の頭と鉄の額を持ち、兵器を操って暴れ回る強大な戦いの怪物。", origin: "黄帝との戦争神話において、敗北した異部族の首長が怪物化されて伝承された。" },
+                    { category: "妖怪", name: "蠱毒（こどく）の虫妖怪", location: "雲南省・貴州省の未開地", content: "多くの毒虫を壺で共食いさせ、生き残った最毒の虫が成す呪いの怪異。", origin: "特定の毒物調合技術や、異文化への恐れ・忌避から生まれた。" },
+                    { category: "妖怪", name: "夜郎怪（やろうかい）", location: "貴州省", content: "世間知らずで傲慢な性格を持ち、山中で旅人に理不尽な害を加える妖怪。", origin: "古代の夜郎国の故事（夜郎自大）と山間の孤立した環境が重なった。" },
+                    { category: "妖怪", name: "落頭民（西南伝承）", location: "四川省・チベットの境界", content: "夜間に首が離れて飛び回り、家畜の血を吸うとされる怪異。", origin: "山岳地帯の密閉された集落における、他部族への不信感から形成。" },
+                    { category: "妖怪", name: "山鬼（さんき）", location: "重慶市・四川省の山間部", content: "豹に乗って山を駆け巡り、人間を惑わせて山奥へ誘い込む美しいが危険な怪異。", origin: "屈原の詩『九歌』にも描かれた、山林の自然美と危険性の両面から生じた。" },
+                    { category: "神様", name: "広元蜀道神", location: "四川省広元市", content: "険しい山道（蜀道）の通行安全と、旅人の無事を司る神。", origin: "絶壁に作られた桟道など、命がけの交通を保護するための切実な祈りから。" },
+                    { category: "神様", name: "川主（二郎神 / 李氷）", location: "四川省都江堰市", content: "治水、治水工事の成功、水害防止を司る武勇豊かな神。", origin: "古代の都江堰事業を成し遂げた李氷父子の偉業を賛えて神格化した。" },
+                    { category: "神様", name: "ツォンカパ（格魯派祖師）", location: "チベット自治区ラサ市", content: "仏法の興隆、智慧の増長、修行者の保護を司るチベット仏教の聖神。", origin: "チベット仏教の大改革を行い、格魯派を創始した偉徳が崇拝された。" },
+                    { category: "神様", name: "パルデン・ラモ（吉祥天女）", location: "チベット自治区", content: "チベットの国家および首都ラサを防衛する強大な怒りの護法神。", origin: "インド仏教の護法神信仰が、チベット固有の守護神崇拝と融合して誕生。" },
+                    { category: "神様", name: "阿嵯耶観音（あさやかんのん）", location: "雲南省大理市", content: "大理国の立国と庶民の平和、福徳を司る独自の観音神。", origin: "南詔国・大理国独自の仏教文化の中で、地域固有の観音像として成立した。" }
+                ]
+            }
+        ];
+
+        // Map Engine State
+        const canvas = document.getElementById('mapCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('mapWrapper');
+
+        let viewTransform = {
+            x: 0,
+            y: 0,
+            scale: 1
+        };
+
+        let isDragging = false;
+        let startPan = { x: 0, y: 0 };
+        let hoveredRegion = null;
+        let mapDimensions = { width: 1200, height: 900 };
+
+        // Handle Resize
+        function resizeCanvas() {
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+            // Center map initial position if first time
+            if (viewTransform.scale === 1 && viewTransform.x === 0 && viewTransform.y === 0) {
+                resetView();
+            }
+            drawMap();
+        }
+
+        function resetView() {
+            const scaleX = canvas.width / mapDimensions.width;
+            const scaleY = canvas.height / mapDimensions.height;
+            viewTransform.scale = Math.min(scaleX, scaleY) * 0.9;
+            if (viewTransform.scale < 0.5) viewTransform.scale = 0.5;
+            viewTransform.x = (canvas.width - mapDimensions.width * viewTransform.scale) / 2;
+            viewTransform.y = (canvas.height - mapDimensions.height * viewTransform.scale) / 2;
+            drawMap();
+        }
+
+        // Draw Ink / Parchment Style Map
+        function drawMap() {
+            ctx.save();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Apply Camera Transform
+            ctx.translate(viewTransform.x, viewTransform.y);
+            ctx.scale(viewTransform.scale, viewTransform.scale);
+
+            // Map Background Texture Paper Simulation
+            ctx.fillStyle = '#ede3cd';
+            ctx.fillRect(0, 0, mapDimensions.width, mapDimensions.height);
+
+            // Draw Decorative Grid / Latitude Lines
+            ctx.strokeStyle = 'rgba(206, 180, 128, 0.3)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < mapDimensions.width; x += 100) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0); ctx.lineTo(x, mapDimensions.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < mapDimensions.height; y += 100) {
+                ctx.beginPath();
+                ctx.moveTo(0, y); ctx.lineTo(mapDimensions.width, y);
+                ctx.stroke();
+            }
+
+            // Draw Coastline & Yangtze / Yellow Rivers (Stylized Ancient Ink Stroke)
+            drawChinaLandAndRivers();
+
+            // Draw Region Polygons and Markers
+            MYTH_DATA.forEach(r => {
+                const isHovered = hoveredRegion === r;
+
+                // Draw Boundary Polygon
+                ctx.beginPath();
+                r.bounds.forEach((pt, i) => {
+                    const px = pt.x * mapDimensions.width;
+                    const py = pt.y * mapDimensions.height;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.closePath();
+
+                ctx.fillStyle = isHovered ? r.color.replace('0.15', '0.35') : r.color;
+                ctx.fill();
+                ctx.strokeStyle = r.borderColor;
+                ctx.lineWidth = isHovered ? 3 : 1.5;
+                ctx.setLineDash(isHovered ? [] : [6, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw Center Pin / Stamp Button
+                const cx = r.center.x * mapDimensions.width;
+                const cy = r.center.y * mapDimensions.height;
+
+                // Pin Outer Glow
+                ctx.beginPath();
+                ctx.arc(cx, cy, isHovered ? 26 : 20, 0, Math.PI * 2);
+                ctx.fillStyle = isHovered ? 'rgba(184, 50, 39, 0.2)' : 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+
+                // Pin Seal Circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+                ctx.fillStyle = r.borderColor;
+                ctx.fill();
+                ctx.strokeStyle = '#fdfbf7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Pin Text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Shippori Mincho, serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(r.region, cx, cy);
+
+                // Tooltip Banner on Hover
+                if (isHovered) {
+                    drawHoverTooltip(r, cx, cy);
+                }
+            });
+
+            // Outer Antique Border Frame
+            ctx.strokeStyle = '#4a3d28';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(10, 10, mapDimensions.width - 20, mapDimensions.height - 20);
+            ctx.lineWidth = 1;
+            ctx.strokeRect(16, 16, mapDimensions.width - 32, mapDimensions.height - 32);
+
+            ctx.restore();
+        }
+
+        // Draw Ink Waves and River Stylized Lines
+        function drawChinaLandAndRivers() {
+            ctx.save();
+            ctx.strokeStyle = '#8a795d';
+            ctx.lineWidth = 2;
+
+            // Simplified Stylized Yellow River (黄河)
+            ctx.beginPath();
+            ctx.moveTo(250, 380);
+            ctx.bezierCurveTo(350, 360, 420, 260, 520, 280);
+            ctx.bezierCurveTo(600, 300, 500, 420, 620, 400);
+            ctx.bezierCurveTo(680, 390, 700, 340, 750, 350);
+            ctx.stroke();
+
+            // Yangtze River (長江)
+            ctx.beginPath();
+            ctx.moveTo(220, 580);
+            ctx.bezierCurveTo(320, 550, 400, 620, 500, 580);
+            ctx.bezierCurveTo(580, 550, 680, 620, 780, 560);
+            ctx.stroke();
+
+            // Decorative Mountain Outlines (Himalayas / Taishan etc)
+            drawMountainSymbol(280, 480, "昆侖山脈");
+            drawMountainSymbol(620, 330, "泰山");
+            drawMountainSymbol(520, 520, "武当山");
+
+            ctx.restore();
+        }
+
+        function drawMountainSymbol(x, y, label) {
+            ctx.beginPath();
+            ctx.moveTo(x - 15, y + 10);
+            ctx.lineTo(x, y - 10);
+            ctx.lineTo(x + 15, y + 10);
+            ctx.moveTo(x, y - 10);
+            ctx.lineTo(x + 10, y + 10);
+            ctx.strokeStyle = '#a49171';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#8a795d';
+            ctx.font = '10px Shippori Mincho, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, y + 22);
+        }
+
+        function drawHoverTooltip(region, cx, cy) {
+            const tooltipW = 180;
+            const tooltipH = 75;
+            const tx = cx - tooltipW / 2;
+            const ty = cy - 65;
+
+            ctx.fillStyle = 'rgba(253, 251, 247, 0.95)';
+            ctx.strokeStyle = region.borderColor;
+            ctx.lineWidth = 1.5;
+            
+            // Rounded Card Background
+            ctx.beginPath();
+            ctx.roundRect(tx, ty, tooltipW, tooltipH, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Card Text Preview
+            const yokaiCount = region.items.filter(i => i.category === '妖怪').length;
+            const deityCount = region.items.filter(i => i.category === '神様').length;
+
+            ctx.fillStyle = '#1a1918';
+            ctx.font = 'bold 13px Shippori Mincho, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${region.region} 伝承録`, cx, ty + 20);
+
+            ctx.font = '11px Shippori Mincho, serif';
+            ctx.fillStyle = '#b83227';
+            ctx.fillText(`妖怪: ${yokaiCount}体  /  神様: ${deityCount}柱`, cx, ty + 40);
+
+            ctx.fillStyle = '#4a3d28';
+            ctx.font = '10px Shippori Mincho, serif';
+            ctx.fillText(`タップして詳細を開く`, cx, ty + 58);
+        }
+
+        // Map Interaction Coordinates Helpers
+        function getMapPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const canvasX = clientX - rect.left;
+            const canvasY = clientY - rect.top;
+
+            // Transform back to map coordinate space
+            const mapX = (canvasX - viewTransform.x) / viewTransform.scale;
+            const mapY = (canvasY - viewTransform.y) / viewTransform.scale;
+
+            return { canvasX, canvasY, mapX, mapY };
+        }
+
+        function getHoveredRegion(mapX, mapY) {
+            const normX = mapX / mapDimensions.width;
+            const normY = mapY / mapDimensions.height;
+
+            return MYTH_DATA.find(r => {
+                // Point-in-polygon algorithm (Raycasting)
+                let inside = false;
+                for (let i = 0, j = r.bounds.length - 1; i < r.bounds.length; j = i++) {
+                    const xi = r.bounds[i].x, yi = r.bounds[i].y;
+                    const xj = r.bounds[j].x, yj = r.bounds[j].y;
+                    const intersect = ((yi > normY) !== (yj > normY))
+                        && (normX < (xj - xi) * (normY - yi) / (yj - yi) + xi);
+                    if (intersect) inside = !inside;
+                }
+                return inside;
+            });
+        }
+
+        // Pointer / Mouse Events
+        wrapper.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startPan = { x: e.clientX - viewTransform.x, y: e.clientY - viewTransform.y };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            const pos = getMapPos(e);
+
+            if (isDragging) {
+                viewTransform.x = e.clientX - startPan.x;
+                viewTransform.y = e.clientY - startPan.y;
+                drawMap();
+            } else {
+                const region = getHoveredRegion(pos.mapX, pos.mapY);
+                if (region !== hoveredRegion) {
+                    hoveredRegion = region;
+                    canvas.style.cursor = hoveredRegion ? 'pointer' : 'grab';
+                    drawMap();
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Click Event (Open Drawer)
+        wrapper.addEventListener('click', (e) => {
+            const pos = getMapPos(e);
+            const region = getHoveredRegion(pos.mapX, pos.mapY);
+            if (region) {
+                openRegionDrawer(region);
+            }
+        });
+
+        // Wheel Zoom Event
+        wrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+            zoom(zoomFactor, e.clientX, e.clientY);
+        }, { passive: false });
+
+        function zoom(factor, clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const cx = clientX ? clientX - rect.left : canvas.width / 2;
+            const cy = clientY ? clientY - rect.top : canvas.height / 2;
+
+            const newScale = Math.max(0.4, Math.min(3.5, viewTransform.scale * factor));
+            
+            viewTransform.x = cx - (cx - viewTransform.x) * (newScale / viewTransform.scale);
+            viewTransform.y = cy - (cy - viewTransform.y) * (newScale / viewTransform.scale);
+            viewTransform.scale = newScale;
+
+            drawMap();
+        }
+
+        // Touch Pinch / Pan Support
+        let initialPinchDistance = null;
+
+        wrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startPan = { x: e.touches[0].clientX - viewTransform.x, y: e.touches[0].clientY - viewTransform.y };
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        });
+
+        wrapper.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && isDragging) {
+                viewTransform.x = e.touches[0].clientX - startPan.x;
+                viewTransform.y = e.touches[0].clientY - startPan.y;
+                drawMap();
+            } else if (e.touches.length === 2 && initialPinchDistance) {
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const factor = dist / initialPinchDistance;
+                zoom(factor, (e.touches[0].clientX + e.touches[1].clientX)/2, (e.touches[0].clientY + e.touches[1].clientY)/2);
+                initialPinchDistance = dist;
+            }
+        });
+
+        wrapper.addEventListener('touchend', () => {
+            isDragging = false;
+            initialPinchDistance = null;
+        });
+
+        // Zoom Controls Binding
+        document.getElementById('zoomInBtn').onclick = () => zoom(1.2);
+        document.getElementById('zoomOutBtn').onclick = () => zoom(0.8);
+        document.getElementById('resetMapBtn').onclick = resetView;
+
+        // Region Drawer Drawer Management
+        const drawer = document.getElementById('regionDrawer');
+        let currentDrawerRegion = null;
+        let currentFilterType = "all";
+
+        function openRegionDrawer(region) {
+            currentDrawerRegion = region;
+            document.getElementById('drawerRegionTitle').innerText = `${region.region} 伝承`;
+            
+            // Update Counts
+            const total = region.items.length;
+            const yokai = region.items.filter(i => i.category === '妖怪').length;
+            const deity = region.items.filter(i => i.category === '神様').length;
+
+            document.getElementById('countAll').innerText = total;
+            document.getElementById('countYokai').innerText = yokai;
+            document.getElementById('countDeity').innerText = deity;
+
+            renderDrawerItems();
+            drawer.classList.remove('translate-x-full');
+        }
+
+        function closeDrawer() {
+            drawer.classList.add('translate-x-full');
+        }
+
+        document.getElementById('closeDrawerBtn').onclick = closeDrawer;
+
+        // Drawer Tab Buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('bg-parchment-50', 'text-cinnabar-700', 'shadow-sm', 'border', 'border-parchment-300');
+                    b.classList.add('text-parchment-800');
+                });
+                btn.classList.add('bg-parchment-50', 'text-cinnabar-700', 'shadow-sm', 'border', 'border-parchment-300');
+                btn.classList.remove('text-parchment-800');
+
+                currentFilterType = btn.dataset.type;
+                renderDrawerItems();
+            };
+        });
+
+        function renderDrawerItems() {
+            if (!currentDrawerRegion) return;
+
+            const container = document.getElementById('drawerContent');
+            container.innerHTML = '';
+
+            const filteredItems = currentDrawerRegion.items.filter(item => {
+                if (currentFilterType === 'yokai') return item.category === '妖怪';
+                if (currentFilterType === 'deity') return item.category === '神様';
+                return true;
+            });
+
+            filteredItems.forEach(item => {
+                const isYokai = item.category === '妖怪';
+                const card = document.createElement('div');
+                card.className = "antique-card rounded-xl p-4 border border-parchment-300 relative overflow-hidden space-y-2.5 hover:border-cinnabar-600/50 transition";
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="stamp-seal ${isYokai ? 'border-cinnabar-700 text-cinnabar-700' : 'border-amber-700 text-amber-800'} text-xs">
+                                ${item.category}
+                            </span>
+                            <h3 class="font-black text-lg text-ink-900 tracking-wide">${item.name}</h3>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-parchment-800 flex items-start space-x-1.5 bg-parchment-200/50 p-2 rounded-md">
+                        <i class="fa-solid fa-location-dot text-cinnabar-600 mt-0.5"></i>
+                        <span>${item.location}</span>
+                    </div>
+
+                    <div class="text-sm text-ink-800 leading-relaxed">
+                        <strong class="text-xs font-bold text-parchment-800 block mb-0.5">【伝承内容】</strong>
+                        ${item.content}
+                    </div>
+
+                    <div class="text-xs text-parchment-800 pt-2 border-t border-parchment-200/70">
+                        <strong class="font-bold text-parchment-900 block mb-0.5">【誕生経緯】</strong>
+                        ${item.origin}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Global Search Modal Logic
+        const searchModal = document.getElementById('searchModal');
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const regionFilter = document.getElementById('regionFilter');
+        const searchResults = document.getElementById('searchResults');
+
+        document.getElementById('openSearchBtn').onclick = () => {
+            searchModal.classList.remove('opacity-0', 'pointer-events-none');
+            searchInput.focus();
+            performSearch();
+        };
+
+        document.getElementById('closeSearchBtn').onclick = () => {
+            searchModal.classList.add('opacity-0', 'pointer-events-none');
+        };
+
+        searchInput.oninput = performSearch;
+        categoryFilter.onchange = performSearch;
+        regionFilter.onchange = performSearch;
+
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            const selectedCat = categoryFilter.value;
+            const selectedRegion = regionFilter.value;
+
+            searchResults.innerHTML = '';
+            let resultsCount = 0;
+
+            MYTH_DATA.forEach(regionData => {
+                if (selectedRegion !== 'all' && regionData.region !== selectedRegion) return;
+
+                regionData.items.forEach(item => {
+                    if (selectedCat !== 'all' && item.category !== selectedCat) return;
+
+                    const matchQuery = !query || 
+                        item.name.toLowerCase().includes(query) ||
+                        item.location.toLowerCase().includes(query) ||
+                        item.content.toLowerCase().includes(query) ||
+                        item.origin.toLowerCase().includes(query);
+
+                    if (matchQuery) {
+                        resultsCount++;
+                        const isYokai = item.category === '妖怪';
+                        const card = document.createElement('div');
+                        card.className = "antique-card rounded-lg p-3.5 border border-parchment-300 space-y-2 hover:border-cinnabar-600 transition cursor-pointer";
+                        
+                        card.onclick = () => {
+                            searchModal.classList.add('opacity-0', 'pointer-events-none');
+                            openRegionDrawer(regionData);
+                        };
+
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="stamp-seal ${isYokai ? 'border-cinnabar-700 text-cinnabar-700' : 'border-amber-700 text-amber-800'} text-xs">
+                                        ${item.category}
+                                    </span>
+                                    <span class="text-xs bg-parchment-200 text-ink-800 px-2 py-0.5 rounded font-bold">
+                                        ${regionData.region}
+                                    </span>
+                                    <h4 class="font-bold text-ink-900">${item.name}</h4>
+                                </div>
+                                <span class="text-xs text-parchment-400">詳細へ <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                            </div>
+                            <p class="text-xs text-ink-800 line-clamp-2">${item.content}</p>
+                            <div class="text-[11px] text-parchment-800 flex items-center space-x-1">
+                                <i class="fa-solid fa-location-dot text-cinnabar-600"></i>
+                                <span>${item.location}</span>
+                            </div>
+                        `;
+                        searchResults.appendChild(card);
+                    }
+                });
+            });
+
+            if (resultsCount === 0) {
+                searchResults.innerHTML = `
+                    <div class="text-center py-12 text-parchment-800 space-y-2">
+                        <i class="fa-solid fa-ban text-2xl"></i>
+                        <p class="text-sm">条件に一致する怪異・神仙は見つかりませんでした。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // References Modal Logic
+        const refModal = document.getElementById('refModal');
+        document.getElementById('openRefBtn').onclick = () => {
+            refModal.classList.remove('opacity-0', 'pointer-events-none');
+        };
+        document.getElementById('closeRefBtn').onclick = () => {
+            refModal.classList.add('opacity-0', 'pointer-events-none');
+        };
+
+        window.onload = () => {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        };
+    </script>
+</body>
+</html>
